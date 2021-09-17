@@ -13,15 +13,16 @@
 
 package com.bmwcarit.barefoot.spatial;
 
-import net.sf.geographiclib.Geodesic;
-import net.sf.geographiclib.GeodesicData;
-
 import com.esri.core.geometry.Envelope2D;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.Polyline;
 
+import net.sf.geographiclib.Geodesic;
+import net.sf.geographiclib.GeodesicData;
+
 /**
- * {@link SpatialOperator} as collection of spatial operations in WGS-84 projection (SRID 4326).
+ * {@link SpatialOperator} as collection of spatial operations in WGS-84
+ * projection (SRID 4326).
  */
 public class Geography implements SpatialOperator {
     @Override
@@ -36,8 +37,7 @@ public class Geography implements SpatialOperator {
             return 0;
         }
         Intercept inter = new Intercept(Geodesic.WGS84);
-        GeodesicData ci =
-                inter.intercept(a.getY(), a.getX(), b.getY(), b.getX(), c.getY(), c.getX());
+        GeodesicData ci = inter.intercept(a.getY(), a.getX(), b.getY(), b.getX(), c.getY(), c.getX());
         GeodesicData ai = Geodesic.WGS84.Inverse(a.getY(), a.getX(), ci.lat2, ci.lon2);
         GeodesicData ab = Geodesic.WGS84.Inverse(a.getY(), a.getX(), b.getY(), b.getX());
 
@@ -89,6 +89,9 @@ public class Geography implements SpatialOperator {
             ds = distance(a, b);
 
             double f_ = intercept(a, b, c);
+            if (Double.isNaN(f_)) {
+                continue;
+            }
             f_ = (f_ > 1) ? 1 : (f_ < 0) ? 0 : f_;
             Point x = interpolate(a, b, f_);
             double d_ = distance(c, x);
@@ -109,26 +112,25 @@ public class Geography implements SpatialOperator {
     public Point interpolate(Polyline path, double f) {
         return interpolate(path, length(path), f);
     }
-    
+
     @Override
     public int getIndexPoint(Polyline p, double length) {
-      
+
         Point a = p.getPoint(0);
         double ds = 0;
-
 
         for (int i = 1; i < p.getPointCount(); ++i) {
             Point b = p.getPoint(i);
             ds += distance(a, b);
 
-            if (ds>= length) {
+            if (ds >= length) {
                 return i;
             }
-  
+
             a = b;
         }
 
-        return p.getPointCount()-1;
+        return p.getPointCount() - 1;
     }
 
     @Override
